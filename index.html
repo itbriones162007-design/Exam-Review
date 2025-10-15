@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Supply Chain — Exam 3 Quiz</title>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html,body { height: 100%; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+  <div class="max-w-4xl mx-auto py-10 px-4">
+    <header class="mb-6">
+      <h1 class="text-3xl font-extrabold">Supply Chain Management — Exam 3 Quiz</h1>
+      <p class="mt-2 text-slate-600">35-question practice quiz (multiple choice + short answer). Answer, submit, and get instant grading & feedback.</p>
+      <div class="mt-4 flex gap-3">
+        <button id="startBtn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Start Quiz</button>
+        <button id="studyBtn" class="px-4 py-2 bg-amber-500 text-slate-900 rounded hover:bg-amber-600">Study Mode</button>
+        <button id="downloadBtn" class="px-4 py-2 bg-slate-200 text-slate-800 rounded hover:bg-slate-300">Download PDF</button>
+      </div>
+    </header>
+
+    <main id="app" class="bg-white rounded shadow p-6">
+      <div id="intro" class="">
+        <h2 class="text-xl font-semibold">Instructions</h2>
+        <ul class="mt-3 list-disc pl-6 text-slate-700">
+          <li>There are 35 questions. Some are multiple choice, others are short-answer.</li>
+          <li>After you finish, click <strong>Submit</strong> to grade your quiz and see explanations.</li>
+          <li>Use <strong>Study Mode</strong> to reveal correct answers without scoring.</li>
+        </ul>
+      </div>
+
+      <!-- Quiz container -->
+      <form id="quizForm" class="hidden mt-6 space-y-6">
+        <div id="questionsContainer" class="space-y-6"></div>
+
+        <div class="flex items-center gap-3 mt-6">
+          <button id="submitBtn" type="button" class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700">Submit</button>
+          <button id="resetBtn" type="button" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Restart</button>
+          <div id="status" class="ml-auto text-sm text-slate-600"></div>
+        </div>
+      </form>
+
+      <!-- Results -->
+      <div id="results" class="hidden mt-6 bg-slate-50 p-4 rounded border">
+        <h3 class="text-lg font-semibold">Results</h3>
+        <p id="scoreSummary" class="mt-2 text-slate-800"></p>
+        <div id="review" class="mt-4 space-y-4"></div>
+      </div>
+    </main>
+
+    <footer class="mt-6 text-sm text-slate-500">
+      <p>To host: push this file to GitHub & enable Pages, or drag-and-drop to Netlify/Vercel.</p>
+    </footer>
+  </div>
+
+<script>
+/* ---------------------------
+   Quiz JSON (35 questions)
+   --------------------------- */
+const quiz = [
+  {"question":"The main goal of demand management is to:","options":["Reduce labor costs","Balance supply and demand while satisfying customers","Eliminate product returns","Increase production rates"],"answer":"Balance supply and demand while satisfying customers"},
+  {"question":"Independent demand refers to:","options":["Demand tied to another item","Demand that is random","Demand for a finished product","None of the above"],"answer":"Demand for a finished product"},
+  {"question":"The Delphi method is best used for:","options":["Short-term quantitative forecasting","Long-term qualitative forecasting","Regression analysis","JIT planning"],"answer":"Long-term qualitative forecasting"},
+  {"question":"Which forecasting technique gives greater weight to recent data?","options":["Simple moving average","Weighted moving average","Regression","Trend analysis"],"answer":"Weighted moving average"},
+  {"question":"CPFR differs from S&OP because:","options":["CPFR is external collaboration","CPFR uses qualitative data","S&OP involves suppliers","S&OP uses simulation"],"answer":"CPFR is external collaboration"},
+  {"question":"Which of the following is not a demand fluctuation type?","options":["Random","Trend","Irregular","Seasonal"],"answer":"Irregular"},
+  {"question":"A customer service philosophy means:","options":["Performed only by logistics","Organization-wide commitment","Measured by delivery time","Activity costing only"],"answer":"Organization-wide commitment"},
+  {"question":"Which phase of order management focuses on order receipt and fulfillment?","options":["Influence","Execute","Forecasting","Planning"],"answer":"Execute"},
+  {"question":"Activity-based costing helps companies:","options":["Assign costs by department","Assign costs to activities that consume resources","Measure customer satisfaction","Reduce capital costs only"],"answer":"Assign costs to activities that consume resources"},
+  {"question":"The danger zone in customer segmentation represents:","options":["High profit customers","Low cost, high sales customers","High cost, low profit customers","New customers"],"answer":"High cost, low profit customers"},
+  {"question":"The order-to-cash cycle includes:","options":["Only receiving payment","All processes from order to payment","Only shipping products","Only internal accounting"],"answer":"All processes from order to payment"},
+  {"question":"Stockouts typically lead to:","options":["Lower fill rates","Reduced capital costs","Improved customer loyalty","Higher revenue"],"answer":"Lower fill rates"},
+  {"question":"Which is not part of inventory carrying costs?","options":["Storage cost","Capital cost","Transportation cost","Risk cost"],"answer":"Transportation cost"},
+  {"question":"EOQ assumes:","options":["Fluctuating demand","Constant demand","Random lead times","Variable cost"],"answer":"Constant demand"},
+  {"question":"JIT focuses on:","options":["Large orders","Eliminating waste and lead time","Increasing safety stock","Decreasing product quality"],"answer":"Eliminating waste and lead time"},
+  {"question":"MRP II differs from MRP because it:","options":["Focuses on outbound shipments","Includes financial planning","Requires more safety stock","Reduces lead times"],"answer":"Includes financial planning"},
+  {"question":"DRP manages:","options":["Inbound materials","Outbound distribution","Internal accounting","Forecast error"],"answer":"Outbound distribution"},
+  {"question":"In VMI, who decides when to reorder?","options":["Customer","Vendor","Warehouse manager","Accountant"],"answer":"Vendor"},
+  {"question":"The A category in ABC analysis refers to:","options":["Low-value items","High-value, high-priority items","Routine items","Overstock items"],"answer":"High-value, high-priority items"},
+  {"question":"The main advantage of a system-wide inventory approach is:","options":["Simplicity","Optimization across all facilities","Less communication","Independent decisions"],"answer":"Optimization across all facilities"},
+  {"question":"Define dependent demand.","answer":"Demand that depends on the demand for another item (e.g., component parts)."},
+  {"question":"List the 4 elements of customer service.","answer":"Time, Dependability, Communication, Convenience."},
+  {"question":"Explain the purpose of sales and operations planning (S&OP).","answer":"To create an internal consensus forecast aligning all departments."},
+  {"question":"What is the break-even formula?","answer":"Break-even = Fixed Costs ÷ (Price – Variable Cost)."},
+  {"question":"What is safety stock?","answer":"Inventory held to protect against demand or lead-time uncertainty."},
+  {"question":"Name 3 key inventory costs.","answer":"Carrying cost, ordering/setup cost, and stockout cost."},
+  {"question":"How does JIT reduce waste?","answer":"By ordering materials in exact quantities and timing needed."},
+  {"question":"Define a perfect order.","answer":"Order delivered on time, in full, and accurately billed."},
+  {"question":"What is the difference between MRP and DRP?","answer":"MRP manages inbound materials, while DRP manages outbound distribution."},
+  {"question":"What is customer service recovery?","answer":"A company’s plan to correct service failures and restore satisfaction."},
+  {"question":"A company sees increasing demand every month. Which forecasting method should it avoid and why?","answer":"Avoid simple moving average — it lags behind trends."},
+  {"question":"Your company suffers stockouts during the holiday season. Which inventory type should be increased?","answer":"Seasonal inventory."},
+  {"question":"Finance wants lower inventory but marketing wants high stock. What’s the tradeoff?","answer":"Cost efficiency vs. service level — a conflict between functional goals."},
+  {"question":"If lead time = 5 days and daily demand = 10 units, what’s the reorder point?","answer":"50 units."},
+  {"question":"Why might VMI reduce stockouts but increase holding costs?","answer":"Vendors restock proactively to prevent shortages, which may overfill inventory."}
+];
+
+/* ---------------------------
+   Utility & Rendering
+   --------------------------- */
+const questionsContainer = document.getElementById('questionsContainer');
+const quizForm = document.getElementById('quizForm');
+const startBtn = document.getElementById('startBtn');
+const studyBtn = document.getElementById('studyBtn');
+const submitBtn = document.getElementById('submitBtn');
+const resetBtn = document.getElementById('resetBtn');
+const intro = document.getElementById('intro');
+const resultsDiv = document.getElementById('results');
+const reviewDiv = document.getElementById('review');
+const scoreSummary = document.getElementById('scoreSummary');
+const status = document.getElementById('status');
+const downloadBtn = document.getElementById('downloadBtn');
+
+let studyMode = false;
+
+/* shuffle helper */
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+}
+
+/* Render questions */
+function renderQuiz() {
+  questionsContainer.innerHTML = '';
+  // show questions in original order (you can shuffle if desired)
+  quiz.forEach((q, idx) => {
+    const qWrap = document.createElement('div');
+    qWrap.className = "p-4 border rounded bg-white";
+    let html = `<div class="flex items-start gap-3">
+                  <div class="text-slate-500 font-semibold">${idx+1}.</div>
+                  <div class="flex-1">
+                    <div class="font-medium text-slate-800 mb-2">${q.question}</div>`;
+
+    if(q.options && q.options.length){
+      // shuffle copy of options so answers don't always in same place
+      const opts = q.options.slice();
+      // maintain consistent shuffle across page load
+      // simple stable shuffle: include index
+      shuffle(opts);
+      html += `<div class="space-y-2">`;
+      opts.forEach((opt, oi) => {
+        const inputId = `q_${idx}_opt_${oi}`;
+        html += `
+          <label class="block p-2 rounded hover:bg-slate-50">
+            <input data-qidx="${idx}" type="radio" name="q_${idx}" value="${opt}" class="mr-3" id="${inputId}">
+            <span>${opt}</span>
+          </label>
+        `;
+      });
+      html += `</div>`;
+    } else {
+      html += `<div><input data-qidx="${idx}" type="text" name="q_${idx}" class="w-full mt-1 p-2 border rounded" placeholder="Type your short answer here"></div>`;
+    }
+
+    html += `<div id="explain_${idx}" class="mt-3 text-sm text-slate-700 hidden"></div>`;
+    html += `</div></div>`;
+
+    qWrap.innerHTML = html;
+    questionsContainer.appendChild(qWrap);
+  });
+}
+
+/* Start quiz */
+startBtn.addEventListener('click', () => {
+  studyMode = false;
+  startQuiz();
+});
+studyBtn.addEventListener('click', () => {
+  studyMode = true;
+  startQuiz();
+});
+
+function startQuiz(){
+  intro.classList.add('hidden');
+  quizForm.classList.remove('hidden');
+  resultsDiv.classList.add('hidden');
+  status.textContent = `Questions: ${quiz.length}`;
+  renderQuiz();
+  // scroll to top of quiz
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* Submit grading */
+submitBtn.addEventListener('click', () => {
+  gradeQuiz();
+});
+
+resetBtn.addEventListener('click', () => {
+  // clear inputs and return to intro
+  quizForm.classList.add('hidden');
+  intro.classList.remove('hidden');
+  resultsDiv.classList.add('hidden');
+  questionsContainer.innerHTML = '';
+});
+
+/* Grade logic */
+function gradeQuiz(){
+  const total = quiz.length;
+  let correct = 0;
+  reviewDiv.innerHTML = '';
+
+  quiz.forEach((q, idx) => {
+    const explainEl = document.getElementById(`explain_${idx}`);
+    explainEl.classList.add('hidden');
+    explainEl.innerHTML = '';
+
+    let userAnswer = '';
+    if(q.options && q.options.length){
+      const radios = document.querySelectorAll(`input[name="q_${idx}"]`);
+      radios.forEach(r => { if(r.checked) userAnswer = r.value; });
+      const isCorrect = (userAnswer && userAnswer.trim().toLowerCase() === q.answer.trim().toLowerCase());
+      if(isCorrect) correct++;
+      // build review block
+      const block = document.createElement('div');
+      block.className = 'p-3 rounded bg-white border';
+      block.innerHTML = `<div class="flex items-start gap-3"><div class="font-semibold">${idx+1}.</div><div class="flex-1">
+          <div class="font-medium">${q.question}</div>
+          <div class="mt-2">Your answer: <span class="${isCorrect? 'text-green-700 font-semibold' : 'text-red-700 font-semibold'}">${userAnswer || '<em>no answer</em>'}</span></div>
+          <div class="mt-1">Correct answer: <span class="text-green-800 font-semibold">${q.answer}</span></div>
+          <div class="mt-2 text-sm text-slate-700">${getExplanation(q)}</div>
+        </div></div>`;
+      reviewDiv.appendChild(block);
+    } else {
+      // short answer: evaluate loosely (exact or contained)
+      const input = document.querySelector(`input[name="q_${idx}"]`);
+      userAnswer = input ? input.value.trim() : '';
+      const normalizedUser = userAnswer.toLowerCase();
+      const normalizedCorrect = q.answer.toLowerCase();
+      // accept if normalizedUser is exact or normalizedCorrect contains normalizedUser or vice versa
+      const isCorrect = (normalizedUser && (normalizedUser === normalizedCorrect || normalizedCorrect.includes(normalizedUser) || normalizedUser.includes(normalizedCorrect)));
+      if(isCorrect) correct++;
+      const block = document.createElement('div');
+      block.className = 'p-3 rounded bg-white border';
+      block.innerHTML = `<div class="flex items-start gap-3"><div class="font-semibold">${idx+1}.</div><div class="flex-1">
+          <div class="font-medium">${q.question}</div>
+          <div class="mt-2">Your answer: <span class="${isCorrect? 'text-green-700 font-semibold' : 'text-red-700 font-semibold'}">${userAnswer || '<em>no answer</em>'}</span></div>
+          <div class="mt-1">Expected answer (guide): <span class="text-green-800 font-semibold">${q.answer}</span></div>
+          <div class="mt-2 text-sm text-slate-700">${getExplanation(q)}</div>
+        </div></div>`;
+      reviewDiv.appendChild(block);
+    }
+  });
+
+  const scorePercent = Math.round((correct/total)*100);
+  scoreSummary.innerHTML = `<strong>${correct} / ${total}</strong> correct — <strong>${scorePercent}%</strong>`;
+
+  // show results
+  resultsDiv.classList.remove('hidden');
+
+  // If studyMode: don't highlight wrong answers as red in the quiz interface — simply show review
+  if(!studyMode){
+    // optionally lock inputs
+  }
+
+  // Scroll to results
+  resultsDiv.scrollIntoView({behavior:'smooth'});
+  status.textContent = `Completed — Score: ${scorePercent}%`;
+}
+
+/* Basic explanation generator (you can expand these) */
+function getExplanation(q){
+  // small mapping of pointers based on question text
+  const text = q.question.toLowerCase();
+  if(text.includes('demand management')) return 'Demand management aligns supply and demand and is used to plan operations and marketing.';
+  if(text.includes('independent demand')) return 'Independent demand is for finished products, unlike dependent demand which is derived.';
+  if(text.includes('delphi')) return 'The Delphi method uses expert panels and is common for long-range qualitative forecasts.';
+  if(text.includes('weighted')) return 'Weighted moving averages place more emphasis on recent observations.';
+  if(text.includes('cpfr')) return 'CPFR is collaboration between trading partners across companies; S&OP is internal.';
+  if(text.includes('irregular')) return 'Typical fluctuation categories are random, trend, and seasonal.';
+  if(text.includes('customer service philosophy')) return 'As a philosophy, customer service is an organization-wide commitment.';
+  if(text.includes('execute the order') || text.includes('phase of order management')) return 'The execute phase covers receipt, fulfillment, and shipment processing.';
+  if(text.includes('activity-based costing')) return 'ABC assigns costs to activities to reveal true cost drivers.';
+  if(text.includes('danger zone')) return 'Danger zone customers are costly to serve relative to profit.';
+  if(text.includes('order-to-cash')) return 'OTC covers the full flow from order placement to payment collection.';
+  if(text.includes('stockouts')) return 'Stockouts reduce fill rates and can cause lost sales or customer defection.';
+  if(text.includes('transportation cost')) return 'Transportation is typically a logistics cost but not part of inventory carrying costs.';
+  if(text.includes('eoq assumes')) return 'EOQ assumes constant demand and fixed ordering/setup costs.';
+  if(text.includes('jit focuses')) return 'JIT reduces inventory and waste by delivering exactly what is needed when it is needed.';
+  if(text.includes('mrp ii')) return 'MRP II adds financial planning and broader integration to MRP.';
+  if(text.includes('drp manages')) return 'DRP plans outbound distribution and replenishment to distribution centers.';
+  if(text.includes('vmi')) return 'In VMI, the vendor monitors customer inventory and decides replenishment.';
+  if(text.includes('abc analysis')) return 'A items are typically high value or high priority.';
+  if(text.includes('system-wide')) return 'System-wide approaches optimize inventory across multiple facilities, not just a single site.';
+  if(text.includes('dependent demand')) return 'Dependent demand depends on the demand for another item (e.g., parts for an assembly).';
+  if(text.includes('4 elements') || text.includes('elements of customer service')) return 'Time, Dependability, Communication, and Convenience are the four customer service elements.';
+  if(text.includes('s&op')) return 'S&OP aligns internal departments around a consensus forecast and plan.';
+  if(text.includes('break-even')) return 'Break-even = Fixed Costs ÷ (Price – Variable Cost).';
+  if(text.includes('safety stock')) return 'Safety stock mitigates uncertainty in demand and lead time.';
+  if(text.includes('name 3 key inventory costs')) return 'Common inventory costs: carrying, ordering/setup, and stockout costs.';
+  if(text.includes('how does jit reduce')) return 'JIT reduces waste by timing deliveries to exactly match production/consumption needs.';
+  if(text.includes('perfect order')) return 'Perfect orders are complete, accurate, and delivered on time.';
+  if(text.includes('mrp and drp')) return 'MRP schedules inbound components; DRP schedules outbound shipments to DCs.';
+  if(text.includes('customer service recovery')) return 'Service recovery is planned actions to fix mistakes and restore satisfaction.';
+  if(text.includes('simple moving average')) return 'Simple moving average smooths data but lags when a trend exists.';
+  if(text.includes('seasonal inventory')) return 'Seasonal inventory is built up before predictable high-demand periods like holidays.';
+  if(text.includes('tradeoff')) return 'Marketing may want higher inventory for availability; finance prefers low inventory to free cash.';
+  if(text.includes('reorder point')) return 'Reorder point = lead time × demand rate.';
+  if(text.includes('vmi reduce stockouts')) return 'Vendors restock proactively, which helps avoid stockouts but may increase inventory holding.';
+  return '';
+}
+
+/* Download PDF: create a printable snapshot of quiz + answers (simple) */
+downloadBtn.addEventListener('click', () => {
+  // open print dialog for the page (user can Save as PDF)
+  window.print();
+});
+
+/* Initial */
+renderQuiz();
+
+</script>
+</body>
+</html>
